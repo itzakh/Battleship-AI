@@ -39,14 +39,14 @@ class Session:
 
 			self.print_boards(player_board, ai_board)
 
-		play_again = input("Play again? [Y/n]: ")
+		play_again = self.take_input("Play again? [Y/n]: ")
 		if "Y" in play_again.upper():
 			self.play_game()
 
 	def set_human_board(self, board):
 		print("We are going to place 5 boats of varying length on the board.")
 
-		do_random_board = str(input("Do you want a random board? [Y/n]: "))
+		do_random_board = self.take_input("Do you want a random board? [Y/n]: ")
 		if "Y" in do_random_board.upper():
 			human_ai = AI(board.get_board_state())
 			self.set_ai_board(human_ai, board)
@@ -56,22 +56,32 @@ class Session:
 			"For all boats enter in the starting and ending positions surround by quotes and separated by a ','\n" +
 			"e.x. \"A1,A5\"\n")
 
-		board.print_board(True)
-		start_end_pos_5 = input("\nEnter boat of length 5: ")
-		board.set_boat(start_end_pos_5)
-		board.print_board(True)
-		start_end_pos_4 = input("\nEnter boat of length 4: ")
-		board.set_boat(start_end_pos_4)
-		board.print_board(True)
-		start_end_pos_3a = input("\nEnter boat of length 3: ")
-		board.set_boat(start_end_pos_3a)
-		board.print_board(True)
-		start_end_pos_3b = input("\nEnter another boat of length 3: ")
-		board.set_boat(start_end_pos_3b)
-		board.print_board(True)
-		start_end_pos_2 = input("\nEnter boat of length 2: ")
-		board.set_boat(start_end_pos_2)
-		board.print_board(True)
+		self.set_human_boat_safe(board, 5)
+		self.set_human_boat_safe(board, 4)
+		self.set_human_boat_safe(board, 3)
+		self.set_human_boat_safe(board, 3)
+		self.set_human_boat_safe(board, 2)
+
+	def set_human_boat_safe(self, board, size):
+		start_end = self.take_input("\nEnter boat of length " + str(size) + ": ")
+		try:
+			start, end = start_end.split(",")
+			if not(board.is_valid_starting_boat_pos(start)) or not(board.is_valid_starting_boat_pos(end)):
+				raise Exception("Boat input included illegal coordinates")
+			if not(board.boat_correct_length(start, end, size)):
+				raise(Exception("Boat of incorrect length"))
+
+			if board.set_boat(start, end):
+				raise(Exception("Could not place boat there"))
+			board.print_board(True)
+
+		except Exception as error:
+			print("Error: " + str(error))
+			print("Could not understand input. Enter in the starting and ending positions surround by quotes and separated by a ','\n" +
+			"e.x. \"A1,A5\"\n")
+
+			return self.set_human_boat_safe(board, size)
+
 
 	def set_ai_board(self, ai, board):
 		board.set_boat(ai.set_boat(5, board.get_board_state()))
@@ -81,7 +91,7 @@ class Session:
 		board.set_boat(ai.set_boat(2, board.get_board_state()))
 
 	def take_human_turn(self, target_board):
-		next_shot = input("\nSelect space on opponents board to target (e.x. \"A1\"): ")
+		next_shot = self.take_input("\nSelect space on opponents board to target (e.x. \"A1\"): ")
 		result = target_board.shoot(next_shot)
 		self.print_shot_result(next_shot, result)
 
@@ -106,11 +116,19 @@ class Session:
 		return len(sum(board.get_board_state()["boats_left"], [])) <= 0
 
 	def print_boards(self, player_board, opponent_board):
+		print("\n\nYour Board")
+		player_board.print_board(True)
+
 		print("\n\nOpponents Board")
 		opponent_board.print_board()
 
-		print("\n\nYour Board")
-		player_board.print_board(True)
+	def take_input(self, text):
+		try:
+			result = input(text)
+		except:
+			print("Sorry, could not understand input. Try surrounding it in quotation marks \"\"")
+			return self.take_input(text)
+		return result
 
 a = Session()
 a.play_game()

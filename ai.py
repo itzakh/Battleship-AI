@@ -37,9 +37,7 @@ class AI:
 
 		boat_start, boat_end = self.get_min_max_letter_nums(current_boat)
 
-		# Format needed for game to understand
-		boat_start_and_boat_end = boat_start + "," + boat_end
-		return boat_start_and_boat_end
+		return [boat_start, boat_end]
 
 	def shoot(self):
 		self.last_shot = self.pick_new_valid_random_letter_number(self.next_shot_leads, self.board_state["shots"])

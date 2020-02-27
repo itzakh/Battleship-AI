@@ -4,8 +4,7 @@ class Board:
 	def __init__(self):
 		self.board_state = {"height": 10, "width": 10, "boats_left": [], "hits": [], "shots": []}
 
-	def set_boat(self, boat_start_and_end):
-		boat_start, boat_end = self.get_boat_start_and_boat_end(boat_start_and_end)
+	def set_boat(self, boat_start, boat_end):
 		boat_start_x, boat_start_y = self.letter_number_to_coords(boat_start)
 		boat_end_x, boat_end_y = self.letter_number_to_coords(boat_end)
 
@@ -15,12 +14,18 @@ class Board:
 		max_x = max(boat_start_x, boat_end_x)
 
 		boat = []
+		invalid_choices = sum(self.board_state["boats_left"], [])
 
 		if min_y == max_y:
 			for i in range(min_x, max_x + 1):
+				if self.coord_to_letter_number((i, min_y)) in invalid_choices:
+					return 1
 				boat.append(self.coord_to_letter_number((i, min_y)))
+
 		elif min_x == max_x:
 			for i in range(min_y, max_y + 1):
+				if self.coord_to_letter_number((min_x, i)) in invalid_choices:
+					return 1
 				boat.append(self.coord_to_letter_number((min_x, i)))
 		else:
 			return 1
@@ -45,8 +50,40 @@ class Board:
 		# Return 0 for miss
 		return 0
 
-	def get_boat_start_and_boat_end(self, start_end_pos):
-		return start_end_pos.split(',')
+	def is_valid_starting_boat_pos(self, letter_number):
+		coord = self.letter_number_to_coords(letter_number)
+		invalid_choices = sum(self.board_state["boats_left"], [])
+		return self.is_coord_valid(coord, invalid_choices)
+
+	def boat_correct_length(self, boat_start, boat_end, length):
+		boat_start_x, boat_start_y = self.letter_number_to_coords(boat_start)
+		boat_end_x, boat_end_y = self.letter_number_to_coords(boat_end)
+
+		min_y = min(boat_start_y, boat_end_y)
+		max_y = max(boat_start_y, boat_end_y)
+		min_x = min(boat_start_x, boat_end_x)
+		max_x = max(boat_start_x, boat_end_x)
+
+		boat = []
+
+		if min_y == max_y and (max_x - min_x) == (length - 1):
+			return True
+		elif min_x == max_x and (max_y - min_y) == (length - 1):
+			return True
+
+		return False
+
+	def is_coord_valid(self, coord, invalid_choices):
+		x, y = coord
+		if x < 0 or x >= self.board_state["width"]:
+			return False
+		elif y < 0 or y >= self.board_state["height"]:
+			return False
+
+		if self.coord_to_letter_number(coord) in invalid_choices:
+			return False
+
+		return True
 
 	def letter_number_to_coords(self, ln_input):
 		y = self.letter_to_coord(ln_input[0].upper())
