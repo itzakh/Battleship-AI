@@ -46,7 +46,7 @@ class Session:
 	def set_human_board(self, board):
 		print("We are going to place 5 boats of varying length on the board.")
 
-		do_random_board = input("Do you want a random board? [Y/n]: ")
+		do_random_board = eval(input("Do you want a random board? [Y/n]: "))
 		if "Y" in do_random_board.upper():
 			human_ai = AI(board.get_board_state())
 			self.set_ai_board(human_ai, board)
