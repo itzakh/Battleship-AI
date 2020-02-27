@@ -1,18 +1,13 @@
+#!/usr/bin/python
+
 class Board:
+	def __init__(self):
+		self.board_state = {"height": 10, "width": 10, "boats_left": [], "hits": [], "shots": []}
 
-	board_height = 10
-	board_width = 10
-	boats_left = []
-	hits = []
-	shots = []
-
-	def __init__(self, board_width = 10, board_height = 10):
-		self.board_height = board_height
-		self.board_width = board_width
-
-	def set_boat(self, boat_start, boat_end):
-		boat_start_x, boat_start_y = self.get_coords(boat_start)
-		boat_end_x, boat_end_y = self.get_coords(boat_end)
+	def set_boat(self, boat_start_and_end):
+		boat_start, boat_end = self.get_boat_start_and_boat_end(boat_start_and_end)
+		boat_start_x, boat_start_y = self.letter_number_to_coords(boat_start)
+		boat_end_x, boat_end_y = self.letter_number_to_coords(boat_end)
 
 		min_y = min(boat_start_y, boat_end_y)
 		max_y = max(boat_start_y, boat_end_y)
@@ -23,24 +18,23 @@ class Board:
 
 		if min_y == max_y:
 			for i in range(min_x, max_x + 1):
-				boat.append((i, min_y))
+				boat.append(self.coord_to_letter_number((i, min_y)))
 		elif min_x == max_x:
 			for i in range(min_y, max_y + 1):
-				boat.append((min_x, i))
+				boat.append(self.coord_to_letter_number((min_x, i)))
 		else:
 			return 1
 
-		self.boats_left.append(boat)
+		self.board_state["boats_left"].append(boat)
 		return 0
 
-	def shoot(self, shot):
-		coords = self.get_coords(shot)
-		self.shots.append(coords)
+	def shoot(self, letter_number_shot):
+		self.board_state["shots"].append(letter_number_shot)
 
-		for boat in self.boats_left:
-			if coords in boat:
-				boat.remove(coords)
-				self.hits.append(coords)
+		for boat in self.board_state["boats_left"]:
+			if letter_number_shot in boat:
+				boat.remove(letter_number_shot)
+				self.board_state["hits"].append(letter_number_shot)
 
 				if len(boat) == 0:
 					# Return 2 for Hit and Sink!
@@ -51,66 +45,88 @@ class Board:
 		# Return 0 for miss
 		return 0
 
+	def get_boat_start_and_boat_end(self, start_end_pos):
+		return start_end_pos.split(',')
 
-	def get_coords(self, ln_input):
+	def letter_number_to_coords(self, ln_input):
 		y = self.letter_to_coord(ln_input[0].upper())
 		x = int(ln_input[1:]) - 1
 		return (x, y)
+
+	def coord_to_letter_number(self, coord):
+		x, y = coord
+		letter = str(chr(y + ord('A')))
+		number = str(x + 1)
+		return letter + number
 
 	def letter_to_coord(self, letter):
 		letter = letter.upper()
 		return (ord(letter) - ord('A'))
 
 	def get_boats_left(self):
-		return self.boats_left
+		return self.board_state["boats_left"]
 
 	def get_board_state(self):
-		return self.board_width, self.board_height, self.boats_left, self.shots, self.hits
+		board_state = {}
+		return self.board_state
 
 	def print_board(self, reveal_boats = False):
-		board = ['.'* self.board_width] * self.board_height
+		board = ['.'* self.board_state["width"]] * self.board_state["height"]
 
-		for space in self.shots:
-			x, y = space
+		for space in self.board_state["shots"]:
+			x, y = self.letter_number_to_coords(space)
 			row = list(board[y])
 			row[x] = '-'
 			board[y] = "".join(row)
 
-		for space in self.hits:
-			x, y = space
+		for space in self.board_state["hits"]:
+			x, y = self.letter_number_to_coords(space)
 			row = list(board[y])
 			row[x] = 'X'
 			board[y] = "".join(row)
 
 		if reveal_boats:
-			for boat in self.boats_left:
+			for boat in self.board_state["boats_left"]:
 				for space in boat:
-					x, y = space
+					x, y = self.letter_number_to_coords(space)
 					row = list(board[y])
-					row[x] = 'B'
+					row[x] = 'b'
 					board[y] = "".join(row)
 
 		number_row = "  "
-		for i in range(1, self.board_width + 1):
+		for i in range(1, self.board_state["width"] + 1):
 			number_row = number_row + str(i) + " "
 		print(number_row)
 
-		for j in range(0, self.board_height):
+		for j in range(0, self.board_state["height"]):
 			row = board[j]
 			row_letter = str(chr(ord('A') + j))
 			print(row_letter + " " + " ".join(row))
 
 
 # a = Board()
-# a.set_boat('A1', 'A9')
-# a.set_boat('B3', 'D3')
+# a.set_boat('A1,A9')
+# a.set_boat('B3,D3')
 # a.shoot('A7')
 # a.shoot('A6')
 # a.shoot('A5')
 # a.shoot('D7')
 # a.print_board(True)
+# print(a.get_board_state())
 
 
+# bb = Board()
+# bb.set_boat('G1,G9')
+# bb.set_boat('B8,D8')
+# bb.shoot('A1')
+# bb.shoot('H8')
+# bb.shoot('F4')
+# bb.shoot('D4')
+# bb.print_board(True)
+# print(bb.get_board_state())
+# print(isinstance(bb, Board))
+# print(isinstance(a, Board))
+# print(a.get_board_state() == bb.get_board_state())
 
 
 
