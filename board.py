@@ -4,7 +4,8 @@ class Board:
 	def __init__(self):
 		self.board_state = {"height": 10, "width": 10, "boats_left": [], "hits": [], "shots": []}
 
-	def set_boat(self, boat_start, boat_end):
+	def set_boat(self, boat_start_and_end):
+		boat_start, boat_end = boat_start_and_end
 		boat_start_x, boat_start_y = self.letter_number_to_coords(boat_start)
 		boat_end_x, boat_end_y = self.letter_number_to_coords(boat_end)
 
@@ -50,9 +51,8 @@ class Board:
 		# Return 0 for miss
 		return 0
 
-	def is_valid_starting_boat_pos(self, letter_number):
+	def is_valid_letter_num(self, letter_number, invalid_choices):
 		coord = self.letter_number_to_coords(letter_number)
-		invalid_choices = sum(self.board_state["boats_left"], [])
 		return self.is_coord_valid(coord, invalid_choices)
 
 	def boat_correct_length(self, boat_start, boat_end, length):
